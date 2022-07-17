@@ -6,13 +6,18 @@
     <title>Document</title>
     <style>
 
-body{
+body {
+    position: relative;
+    display: flex;
+    margin: 0;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
     background: url(img/main.jpg) no-repeat center top fixed;
     background-size: cover;
 }
 
 #pause {
-	position: fixed;
 	display: none;
     width: 200px;
     text-align: center;
@@ -26,7 +31,6 @@ body{
 }
 
 #menu {
-    position: fixed;
     width: 40%;
     color: #eaeaea;
     font-weight: 600;
@@ -52,6 +56,37 @@ body{
     box-shadow: inset 0px 0px 5px #000;
 }
 
+@media screen and (max-width: 1260px) {
+    #menu > p {
+		letter-spacing: 7px;
+    }
+}
+
+@media screen and (max-width: 1100px) {
+    #menu > p {
+		letter-spacing: 4px;
+    }
+}
+
+@media screen and (max-width: 900px) {
+	#menu > p {
+		letter-spacing: 3px;
+	}
+}
+
+@media screen and (max-width: 850px) {
+		#menu > p {
+		letter-spacing: 2px;
+	}
+}
+
+@media screen and (max-width: 530px) {
+	#menu > p {
+		letter-spacing: 0px;
+		font-size:0.6em
+	}
+}
+
 #menu ul {
     padding: 10px 0;
     list-style: none;
@@ -61,7 +96,7 @@ body{
     box-shadow: inset 0px 0px 5px #000;
 }
 
-#menu > #count_meteor {
+#count_meteor {
 	letter-spacing: normal;
 }
 
@@ -191,9 +226,13 @@ body{
 }
 
 #indicate {
+    position: fixed;
     display: flex;
+    left: 10px;
+    top: 10px;
     justify-content: space-around;
-    width: 10%;
+    width: 120px;
+    z-index: 1;
 }
 
 .indicator {
@@ -303,12 +342,11 @@ body{
     font-size: 5em;
     font-family: cursive;
     font-weight: 600;
-    color: #0009;
+    color: rgba(0, 0, 8, 0.19);
     transform: rotate(-45deg);
-    text-shadow: 3px 3px 5px #49b785;
 }
 
-.charging_shoots {
+#charging_shoots {
  	position: fixed;
  	animation: chard_shoots 100s infinite linear;
     z-index: 1;
@@ -333,7 +371,7 @@ body{
 <div id="menu">
 	<p></p>
 	<p id="start" onclick="menu.children[0].id = ''; game = new newGame();">START GAME!</p>
-	<p id="count_meteor">destroy <span>5</span> meteorites</p>
+	<p id="count_meteor">destroy <span>20</span> meteorites</p><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->
 	<ul>
 		<li style="color: #f55353; font-weight: 600;"><span>Controlling:</span></li>
 		<li><span>Q - move forward</span></li>
@@ -356,30 +394,21 @@ body{
 <div id="pause">PAUSE</div>
 
 <script>
-    
+
 "use strict"
 
 
 let game = null;
 
 
-let menu = document.getElementById('menu');
-	menu.style.left = innerWidth/2 - menu.getBoundingClientRect().width/2 + 'px';
-	menu.style.top = innerHeight/2 - menu.getBoundingClientRect().height/2 + 'px';
+let menu = document.getElementById('menu'),
+	pause = document.getElementById('pause');
 
-let pause = document.getElementById('pause');
-
-window.onresize = function(event) {
-    menu.style.left = innerWidth/2 - menu.getBoundingClientRect().width/2 + 'px';
-    menu.style.top = innerHeight/2 - menu.getBoundingClientRect().height/2 + 'px';
-    pause.style.left = innerWidth/2 - pause.getBoundingClientRect().width/2 + 'px';
-	pause.style.top = innerHeight/2 - pause.getBoundingClientRect().height/2 + 'px';
-};
 
 
 
 function collisionCircle(e1, e2){
-	if(!e2){return;};
+	if(!e2){return;}; // велосипед!
 	let e1R = e1.width/2;
 	let e2R = e2.width/2;
 
@@ -551,8 +580,6 @@ class Ship{
 				//shoot
 
 				case 32: 
-
-					
 					
 					if(this.blockFireSwitch){
 
@@ -661,17 +688,16 @@ class Ship{
 		this.left = this.left + this.x;
 		this.top = this.top - this.y;
 
-
-
-
-
 ///////////////////////////////// collision width ammunition ///////////////////////////////
 		if(game.ammunitionDefine){
 			if(collisionCircle(this, game.ammunition)){
+
 				this.ammunitionElem.textContent = this.countShoots+=10;
+
 				let laserRecharge = new Audio('/audio/laser-recharge.mp3');
 				laserRecharge.volume = 0.2;
 				laserRecharge.play();
+
 				game.deleteAmmunition();
 			};
 		};
@@ -767,7 +793,7 @@ class Shoot{
         this.y = Math.cos(this.rotateCorner*game.cornerRad)*10;
 
         this.lifeCount = 0;
-        this.lifeTime = 200;
+        this.lifeTime = innerWidth/100*14;
 
 		this.elem.appendChild(this.elem_shoot);
 		document.body.appendChild(this.elem);
@@ -798,7 +824,10 @@ class Shoot{
 
 				if(game.enemies[o].elem.className == 'enemy_ship_missle'){
 					if(collisionRect(this, game.enemies[o])){
-
+////////////////////////////////////////////////////////////////////////////////////////////////
+						game.enemies[o].audioMissleStart.pause();
+						game.enemies[o].audioMissleStart.currentTime = 0;
+////////////////////////////////////////////////////////////////////////////////////////////////
 						game.dieEnemies(game.enemies[o].num);
 
 						this.elem.remove();
@@ -811,7 +840,13 @@ class Shoot{
 				else{
 					if(collisionCircle(this, game.enemies[o],3)){
 
-						if(game.enemies[o].elem.className == 'enemy_meteor')game.indicatorEndLevel.textContent = --game.quantityIndicate;
+						if(game.enemies[o].elem.className == 'enemy_meteor'){game.indicatorEndLevel.textContent = --game.quantityIndicate;}
+						else if(game.enemies[o].elem.className == 'enemy_ship_mine'){
+////////////////////////////////////////////////////////////////////////////////////////////////
+						game.enemies[o].audioMissleStart.pause();
+						game.enemies[o].audioMissleStart.currentTime = 0;
+////////////////////////////////////////////////////////////////////////////////////////////////
+						};
 
 						game.dieEnemies(game.enemies[o].num);
 
@@ -824,12 +859,10 @@ class Shoot{
 			};
 		};
 
-
     	this.lifeCount++;
 
         this.left += this.x;
         this.top -= this.y;
-
 
         if(this.left > innerWidth){this.left = -this.width;}
         else if(this.left + this.width < 0){this.left = innerWidth;};
@@ -936,7 +969,6 @@ class EnemyShip{
 	constructor(){
 
 		this.shipChoice = Math.floor(Math.random()*3);
-		// this.shipChoice = 1;
 
 		this.elem = document.createElement('img');
 		this.elem.src = this.shipChoice?Math.round(Math.random())?'/img/enemy-ship2.png':'/img/enemy-ship3.png':'/img/enemy-ship1.png';
@@ -956,15 +988,15 @@ class EnemyShip{
 
 			this.elem.className ='enemy_aggressor';
 
-			let t = Math.round(Math.random()); //1
+			let t = Math.round(Math.random());
 
-			this.top = t?//1
+			this.top = t?
 							Math.round(Math.random())?
 														-this.width:
 														innerHeight+this.width:
 							parseInt(Math.random()*innerHeight/100*80) + innerHeight/100*10;
 
-			this.left = t?//1
+			this.left = t?
 							parseInt(Math.random()*innerWidth/100*80) + innerWidth/100*10:
 							Math.round(Math.random())?
 														innerWidth+this.width:
@@ -995,13 +1027,13 @@ class EnemyShip{
 
     	
     	
-    	if(this.shipChoice){//1
+    	if(this.shipChoice){
     		this.timeShipLife--;
     		if(this.timeShipFire == this.timeShipLife){new EnemyShipShoot(this.left, this.top);};
     	}
     	else{
     		this.timeShipLife--;
-    		if(this.timeShipFire.indexOf(this.timeShipLife) != -1){new EnemyShipShoot2(this.left, this.top);};
+    		if(this.timeShipFire.indexOf(this.timeShipLife) != -1){new EnemyShipShoot2(this.left+this.width/2, this.top+this.width/2);};
     	};
 
 
@@ -1045,6 +1077,8 @@ class EnemyShip{
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 class EnemyShipShoot{
 
 	constructor(x,y){
@@ -1056,6 +1090,10 @@ class EnemyShipShoot{
 
 		this.elem.src = (this.choice)?'/img/enemy-ship-shoot.png':'/img/missle.png';
 		this.elem.className = (this.choice)?'enemy_ship_mine':'enemy_ship_missle';
+
+		this.audioMissleStart = new Audio('/audio/start-missle.mp3');
+		this.audioMissleStart.volume = 0.4;
+		this.audioMissleStart.play();
 
 		this.speedShoot = 4;
 
@@ -1081,28 +1119,24 @@ class EnemyShipShoot{
 		};
 	};
 
-	rotate(){
-
-		let a = Math.abs(this.top - game.ship.top);
-		let b = Math.abs(this.left - game.ship.left);
-		let PI180 = 180/Math.PI;
-		let res = parseInt((this.left>game.ship.left)?(this.top<game.ship.top)?Math.atan(b/a)*PI180:Math.atan(a/b)*PI180+90:(this.top>game.ship.top)?Math.atan(b/a)*PI180+180:Math.atan(a/b)*PI180+270);
-
-		this.elem.style.transform = 'rotate(' + res + 'deg)';
-
-	};
-
 	move(){
 
 		if(!this.callDie){
 
-			if(!this.choice)this.rotate();
-
 	        let a = game.ship.top - this.top;
 	        let b = this.left - game.ship.left;
-	        let tg = Math.sqrt(1/(1+Math.pow(a/b,2)));
-	        this.x = (game.ship.left > this.left)?-tg*1:tg*1;
-	        this.y = (game.ship.top > this.top)?Math.sqrt(Math.abs(1-this.x*this.x))*1:-Math.sqrt(Math.abs(1-this.x*this.x))*1;
+	        let tg = Math.sqrt(1/(1+(a/b)**2));
+	        this.x = (game.ship.left > this.left)?-tg:tg;
+	        this.y = (game.ship.top > this.top)?Math.sqrt(Math.abs(1-this.x**2)):-Math.sqrt(Math.abs(1-this.x**2));
+
+///////////////////////////////// rotate enemy_ship_missle //////////////////////////////////
+
+			let corner = Math.atan2(b,a) * 180 / Math.PI;
+
+			if (corner < 0) corner += 360;
+			this.elem.style.transform = 'rotate(' + corner + 'deg)';
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 		};
 
@@ -1116,12 +1150,13 @@ class EnemyShipShoot{
 
     		explosion(game.ship);
 
-			explosion(this);
     		game.die();
 
     	};
 	};
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////
 
 class EnemyShipShoot2{
 
@@ -1165,18 +1200,10 @@ class EnemyShipShoot2{
         this.x = (game.ship.left > this.left)?-tg*1:tg*1;
         this.y = (game.ship.top > this.top)?Math.sqrt(Math.abs(1-this.x*this.x))*1:-Math.sqrt(Math.abs(1-this.x*this.x))*1;
 
-		this.rotate();
-
-	};
-
-	rotate(){
-
-		let a = Math.abs(this.top - game.ship.top);
-		let b = Math.abs(this.left - game.ship.left);
-		let PI180 = 180/Math.PI;
-		let res = parseInt((this.left>game.ship.left+game.ship.width/2)?(this.top<game.ship.top+game.ship.height/2)?Math.atan(b/a)*PI180:Math.atan(a/b)*PI180+90:(this.top>game.ship.top+game.ship.height/2)?Math.atan(b/a)*PI180+180:Math.atan(a/b)*PI180+270);
-
-		this.elem.style.transform = 'rotate(' + res + 'deg)';
+		let corner = Math.atan2(b,a) * 180 / Math.PI;
+		
+		if (corner < 0) corner += 360;
+		this.elem.style.transform = 'rotate(' + corner + 'deg)';
 
 	};
 
@@ -1195,8 +1222,6 @@ class EnemyShipShoot2{
 
     		game.die();
 
-			explosion(this);
-
     	};
 
     	if(this.left > innerWidth + this.width || this.left + this.width*2 < 0 || this.top > innerHeight + this.width || this.top + this.width*2 < 0){
@@ -1205,6 +1230,8 @@ class EnemyShipShoot2{
     	};
 	};
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////
 
 class BlackHole {
 
@@ -1241,6 +1268,8 @@ class BlackHole {
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 class BlackHole2 extends BlackHole {
 
 	constructor(){
@@ -1258,30 +1287,32 @@ class BlackHole2 extends BlackHole {
 	};
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 class Ammunition{
 	constructor(){
 
 		this.elem = new Image(30,30);
 		this.elem.src = 'img/charging_shoots.png';
-		this.elem.className = 'charging_shoots';
+		this.elem.id = 'charging_shoots';
 
 		this.width = this.elem.width;
 		this.height = this.elem.height;
 
 		this.left = Math.round(Math.random()*(innerWidth-this.width));
 		this.top = Math.round(Math.random()*(innerHeight-this.width));
-		// this.left = innerWidth/2;
-		// this.top = innerHeight/2-100;
 
 		this.elem.style.left = this.left + 'px';
 		this.elem.style.top = this.top + 'px';
 
 		this.elem.onload = ()=>{
 			document.body.appendChild(this.elem);
-
+			game.ammunitionDefine = true;
 		};
 	};
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////
 
 class newGame{
 
@@ -1329,13 +1360,9 @@ class newGame{
 		this.indicate = document.getElementById('indicate');
 		this.indicate.style.opacity = '1';
 
-
 		this.gun = document.getElementById('gun');
 		this.gun.children[0].style.top = '100%';
 		this.gun_indicatorHeight = parseInt(getComputedStyle(gun.children[0]).top);
-
-		this.render = this.render.bind(this);
-		this.stopRender = requestAnimationFrame(this.render);
 
 		this.enemyShipSwitch = true;
 
@@ -1352,9 +1379,47 @@ class newGame{
 		this.ammunitionDefine = false;
 		this.ammunitionDelay = true;
 
-
 		this.pause = false;
 		this.stopSetEnemy = null;
+
+		this.render = ()=>{
+
+			if(this.checkingLastEnemy){
+				if(!Object.keys(this.enemies).length){
+					cancelAnimationFrame(this.stopRender);
+					this.win();
+					return;
+				};
+			};
+
+			if(this.ship.rotateRender){
+				this.ship.rotateTurn?this.ship.rotate(0):this.ship.rotate(1);
+			};
+
+		    this.ship.move();
+
+		    if(this.ship.speedFastTurn){
+		    	this.ship.speed(this.ship.speedFastTurn);
+		    };
+
+			for(let o in this.enemies){
+				this.enemies[o].move();
+			};
+
+			for(let o in this.shoots){
+				this.shoots[o].move();
+			};
+
+			if(this.stopGame){
+				this.stopRender = requestAnimationFrame(this.render);
+			}
+			else{
+				cancelAnimationFrame(this.stopRender);
+			};
+		};
+
+		this.stopRender = requestAnimationFrame(this.render);
+
 		this.setEnemy();
 
 	};
@@ -1387,9 +1452,7 @@ class newGame{
 				h2.remove();
 			}, 1000);
 		};
-
 	};
-
 
 	die(){
 
@@ -1419,7 +1482,6 @@ class newGame{
 		menu.children[0].style.display = 'block';
 		menu.style.left = innerWidth/2 - menu.getBoundingClientRect().width/2 + 'px';
 		menu.style.top = innerHeight/2 - menu.getBoundingClientRect().height/2 + 'px';
-
 	};
 
 	win(){
@@ -1456,9 +1518,6 @@ class newGame{
 		else{
 			document.getElementById('count_meteor').children[0].textContent = parseInt(document.getElementById('count_meteor').children[0].textContent)+1;
 		};
-
-
-
 	};
 
 	setEnemy(){
@@ -1467,24 +1526,15 @@ class newGame{
 
 			if(!this.stopGame){clearInterval(this.stopSetEnemy); return;};
 
-
-///////////////////////////////////////////////////////////////////////////////////////
-
-
-
-					if(this.ammunitionDelay){
-
-						this.ammunitionDelay = false;
-
-						setTimeout(()=>{
-							if(!this.ammunitionDefine && this.stopGame){
-								this.ammunitionDefine = true;
-								this.ammunition = new Ammunition();
-							};
-						}, 2000);
+			if(this.ammunitionDelay){
+				this.ammunitionDelay = false;
+				setTimeout(()=>{
+					if(!this.ammunitionDefine && this.stopGame){
+						this.ammunition = new Ammunition();
 					};
-///////////////////////////////////////////////////////////////////////////////////////
+				}, 5000);
 
+			};
 
 			if(!this.stopEnemy){
 				if(i < this.enemyLength){
@@ -1514,7 +1564,6 @@ class newGame{
 				else{
 					this.checkingLastEnemy = true;
 					this.stopEnemy = true;
-					// clearInterval(this.stopSetEnemy);
 				};
 			};
 
@@ -1535,61 +1584,23 @@ class newGame{
 				game.enemies[o].callDie = true;
 				game.enemies[o].elem.style.opacity = '0';
 				setTimeout(()=>{
-					// if(Object.keys(this.enemies).length){
+					if(Object.keys(this.enemies).length){
 						this.enemies[o].elem.remove();
 						delete this.enemies[o];
-					// };
+					};
 				},300);
 			};
 		};
 	};
 
 	deleteAmmunition(){
-		if(this.ammunitionDefine == true){
+		if(this.ammunitionDefine){
 			this.ammunition.elem.remove();
-			this.ammunition = {};
 			this.ammunitionDefine = false;
 			this.ammunitionDelay = true;
-
 		};
 	};
 
-
-	render(){
-
-		if(this.checkingLastEnemy){
-			if(!Object.keys(this.enemies).length){
-				cancelAnimationFrame(this.stopRender);
-				this.win();
-				return;
-			};
-		};
-
-		if(this.ship.rotateRender){
-			this.ship.rotateTurn?this.ship.rotate(0):this.ship.rotate(1);
-		};
-
-	    this.ship.move();
-
-	    if(this.ship.speedFastTurn){
-	    	this.ship.speed(this.ship.speedFastTurn);
-	    };
-
-		for(let o in this.enemies){
-			this.enemies[o].move();
-		};
-
-		for(let o in this.shoots){
-			this.shoots[o].move();
-		};
-
-		if(this.stopGame){
-			this.stopRender = requestAnimationFrame(this.render);
-		}
-		else{
-			cancelAnimationFrame(this.stopRender);
-		};
-	};
 };
 
 
