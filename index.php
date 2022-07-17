@@ -371,7 +371,7 @@ body {
 <div id="menu">
 	<p></p>
 	<p id="start" onclick="menu.children[0].id = ''; game = new newGame();">START GAME!</p>
-	<p id="count_meteor">destroy <span>20</span> meteorites</p><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->
+	<p id="count_meteor">destroy <span>1</span> meteorites</p><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->
 	<ul>
 		<li style="color: #f55353; font-weight: 600;"><span>Controlling:</span></li>
 		<li><span>Q - move forward</span></li>
