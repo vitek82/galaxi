@@ -254,24 +254,6 @@ body {
     top: 100%;
 }
 
-.star {
-	position: fixed;
-	opacity: 0;
-	animation: stars 2s infinite linear;
-}
-
-@keyframes stars{
-    0%{
-        transform: scale(0); opacity: 0;
-    }
-    50%{
-        transform: scale(2); opacity: 1;
-    }
-    100%{
-        transform: scale(0); opacity: 0;
-    }
-}
-
 .air_fire {
 	position: fixed;
 	transform: scale(0);
@@ -1127,7 +1109,7 @@ class EnemyShipShoot{
 	        let b = this.left - game.ship.left;
 	        let tg = Math.sqrt(1/(1+(a/b)**2));
 	        this.x = (game.ship.left > this.left)?-tg:tg;
-	        this.y = (game.ship.top > this.top)?Math.sqrt(Math.abs(1-this.x**2)):-Math.sqrt(Math.abs(1-this.x**2));
+	        this.y = (game.ship.top > this.top)?Math.sqrt(Math.abs(1-Math.pow(this.x,2))):-Math.sqrt(Math.abs(1-Math.pow(this.x,2)));
 
 ///////////////////////////////// rotate enemy_ship_missle //////////////////////////////////
 
